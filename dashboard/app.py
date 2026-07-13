@@ -11,42 +11,21 @@ st.set_page_config(
 # --- CSS Customizado Global ---
 set_page_style()
 
-# --- Página Principal ---
-st.title("CommercePulse")
-st.markdown("### Análise 360° do E-commerce Brasileiro")
+# --- Logo Nativa do Streamlit ---
+import os
+st.logo("dashboard/assets/logo_with_text.png", icon_image="dashboard/assets/logo.png", size="large")
 
-st.markdown("---")
+# --- Navegação Nativa do Streamlit (Sem Piscar) ---
+pages = {
+    "Navegação": [
+        st.Page("views/00_Home.py", title="Início", icon=":material/home:"),
+        st.Page("views/01_Visao_Geral.py", title="Visão Geral", icon=":material/analytics:"),
+        st.Page("views/02_Geografica.py", title="Geográfica", icon=":material/public:"),
+        st.Page("views/03_Categorias.py", title="Categorias", icon=":material/sell:"),
+        st.Page("views/04_Logistica.py", title="Logística", icon=":material/local_shipping:"),
+        st.Page("views/05_Vendedores.py", title="Vendedores", icon=":material/storefront:"),
+    ]
+}
 
-st.markdown("""
-**Bem-vindo ao CommercePulse Dashboard!**
-
-Este dashboard consolida as análises exploratórias do e-commerce brasileiro (Olist),
-apresentando métricas de desempenho, análises geográficas, de categorias, logística,
-vendedores e segmentação de clientes.
-
----
-
-#### Navegação
-
-Use o menu lateral para navegar entre as páginas:
-
-| Página | Descrição |
-|--------|-----------|
-| **Visão Geral** | KPIs principais, receita mensal, visão macro do negócio |
-| **Geográfica** | Análise por estado, concentração de receita, frete |
-| **Categorias** | Top categorias, ticket médio, satisfação por segmento |
-| **Logística** | Taxa de atraso, impacto na nota, tempo de entrega |
-| **Vendedores** | Ranking de vendedores, concentração de atrasos |
-
----
-
-#### Sobre os Dados
-
-- **Fonte:** Olist Store (Kaggle — Brazilian E-Commerce Public Dataset)
-- **Período:** 2016 a 2018
-- **Granularidade:** 1 linha por item vendido
-- **Volume:** ~112.650 itens, ~98.666 pedidos, ~95.420 clientes únicos
-""")
-
-st.markdown("---")
-st.caption("CommercePulse © 2026 — Análise de dados de e-commerce brasileiro")
+pg = st.navigation(pages)
+pg.run()

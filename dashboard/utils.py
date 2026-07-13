@@ -154,50 +154,26 @@ def set_page_style():
     pio.templates["plotly_dark"].layout.paper_bgcolor = "rgba(0,0,0,0)"
     pio.templates["plotly_dark"].layout.plot_bgcolor = "rgba(0,0,0,0)"
 
-    # Logo e nome no topo da sidebar
-    logo_path = BASE_DIR / "dashboard" / "assets" / "logo.png"
-    logo_css = ""
-    if logo_path.exists():
-        logo_b64 = get_base64_of_bin_file(str(logo_path))
-        st.sidebar.markdown(f"""
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px 0 25px 0; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 15px;">
-            <img src="data:image/png;base64,{logo_b64}" width="68" style="border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
-            <h2 style="margin: 0; font-size: 1.6rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #60a5fa, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">CommercePulse</h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Menu customizado 100% à prova de falhas (ordem natural)
-        st.sidebar.page_link("app.py", label="Início", icon=":material/home:")
-        st.sidebar.page_link("pages/01_Visao_Geral.py", label="Visão Geral", icon=":material/analytics:")
-        st.sidebar.page_link("pages/02_Geografica.py", label="Geográfica", icon=":material/public:")
-        st.sidebar.page_link("pages/03_Categorias.py", label="Categorias", icon=":material/sell:")
-        st.sidebar.page_link("pages/04_Logistica.py", label="Logística", icon=":material/local_shipping:")
-        st.sidebar.page_link("pages/05_Vendedores.py", label="Vendedores", icon=":material/storefront:")
-        st.sidebar.markdown("---")
-        
-        logo_css = """
-        /* Esconde a navegação padrão do Streamlit (vamos usar a nossa customizada) */
-        [data-testid="stSidebarNav"] {
-            display: none !important;
-        }
-
-        /* Estilo dos links customizados para manter a vibe premium */
-        [data-testid="stSidebar"] a {
-            text-decoration: none !important;
-            transition: all 0.2s ease;
-        }
-        [data-testid="stSidebar"] a:hover {
-            transform: translateX(4px);
-        }
-
-        /* Ajusta o botão de colapsar a sidebar para não sumir */
-        [data-testid="collapsedControl"] {
-            left: 15px !important;
-            background-color: rgba(15, 23, 42, 0.8) !important;
-            border-radius: 50% !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-        }
-        """
+    logo_css = """
+    /* Ajusta o botão de colapsar a sidebar para não sumir */
+    [data-testid="collapsedControl"] {
+        left: 15px !important;
+        background-color: rgba(15, 23, 42, 0.8) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+    }
+    
+    /* Aumenta o tamanho da logo nativa do Streamlit */
+    [data-testid="stLogo"] {
+        height: 60px !important;
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+    }
+    [data-testid="stLogo"] img {
+        max-height: 100% !important;
+        width: auto !important;
+    }
+    """
 
     # Carregar background
     bg_path = BASE_DIR / "dashboard" / "assets" / "background_new.png"
@@ -225,11 +201,20 @@ def set_page_style():
         [data-testid="stAppViewBlockContainer"] {{
             background: rgba(14, 17, 23, 0.4);
             border-radius: 20px;
-            padding: 2rem;
+            padding: 2rem 2rem 2rem 2rem !important;
+            padding-top: 2rem !important;
             backdrop-filter: blur(5px);
-            margin-top: 2rem;
+            margin-top: 1rem;
             margin-bottom: 2rem;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }}
+        
+        /* Força a redução do espaço em branco no topo nativo do Streamlit */
+        .stApp > header {{
+            background-color: transparent !important;
+        }}
+        .stMainBlockContainer {{
+            padding-top: 2rem !important;
         }}
         </style>
         """
