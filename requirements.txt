@@ -1,0 +1,10 @@
+pandas
+numpy
+matplotlib
+plotly
+jupyter
+notebook
+openpyxl
+python-dotenv
+streamlit
+kaleido
