@@ -131,8 +131,19 @@ def compute_seller_metrics(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def format_currency(value: float) -> str:
-    """Formata valor como moeda brasileira."""
+    """Formata valor como moeda brasileira (valor completo)."""
     return f"R$ {value:,.2f}"
+
+def format_currency_compact(value: float) -> str:
+    """Formata valor monetário de forma abreviada (K, M, B) para dashboards."""
+    if value >= 1_000_000_000:
+        return f"R$ {value / 1_000_000_000:.2f}B"
+    elif value >= 1_000_000:
+        return f"R$ {value / 1_000_000:.2f}M"
+    elif value >= 1_000:
+        return f"R$ {value / 1_000:.1f}k"
+    else:
+        return f"R$ {value:.2f}"
 
 
 def format_pct(value: float) -> str:

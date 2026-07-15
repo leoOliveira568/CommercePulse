@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, compute_kpis, compute_monthly_revenue, format_currency, format_pct, set_page_style, plot_chart
+from utils import load_data, compute_kpis, compute_monthly_revenue, format_currency, format_currency_compact, format_pct, set_page_style, plot_chart
 
 st.set_page_config(page_title="Visão Geral — CommercePulse", page_icon=":material/analytics:", layout="wide")
 set_page_style()
@@ -46,14 +46,14 @@ st.markdown("### KPIs Principais")
 
 col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("Pedidos", f"{kpis['total_orders']:,}")
-col2.metric("Receita", format_currency(kpis["total_revenue"]))
-col3.metric("Ticket Médio", format_currency(kpis["avg_ticket"]))
+col2.metric("Receita", format_currency_compact(kpis["total_revenue"]), help=format_currency(kpis["total_revenue"]))
+col3.metric("Ticket Médio", format_currency_compact(kpis["avg_ticket"]), help=format_currency(kpis["avg_ticket"]))
 col4.metric("Nota Média", f"{kpis['avg_review']:.2f}")
 col5.metric("Taxa de Atraso", format_pct(kpis["delay_rate"]))
 
 col6, col7, col8, col9, col10 = st.columns(5)
 col6.metric("Itens Vendidos", f"{kpis['total_items']:,}")
-col7.metric("Receita + Frete", format_currency(kpis["total_revenue_freight"]))
+col7.metric("Receita + Frete", format_currency_compact(kpis["total_revenue_freight"]), help=format_currency(kpis["total_revenue_freight"]))
 col8.metric("Entrega Média", f"{kpis['avg_delivery_days']:.0f} dias")
 col9.metric("Categorias", f"{kpis['n_categories']}")
 col10.metric("Vendedores", f"{kpis['n_sellers']:,}")
