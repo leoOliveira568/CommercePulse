@@ -1,24 +1,30 @@
 """
 CommercePulse Dashboard — Análise Geográfica.
 
-Receita, frete e satisfação por estado do cliente.
+GMV, frete e satisfação por estado do cliente.
 """
-
-import sys
-from pathlib import Path
 
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, compute_state_metrics, format_currency, set_page_style, plot_chart
+from dashboard.utils import (
+    compute_state_metrics,
+    format_currency,
+    load_data,
+    plot_chart,
+    set_page_style,
+)
 
-st.set_page_config(page_title="Geográfica — CommercePulse", page_icon=":material/public:", layout="wide")
+st.set_page_config(
+    page_title="Geográfica — CommercePulse",
+    page_icon=":material/public:",
+    layout="wide",
+)
 set_page_style()
 
 st.title("Análise Geográfica")
-st.markdown("Distribuição de vendas, receita e frete por estado do Brasil.")
+st.markdown("Distribuição de pedidos, GMV e frete por estado do Brasil.")
 
 df = load_data()
 
@@ -36,11 +42,11 @@ if df_filtered.empty:
 
 state_metrics = compute_state_metrics(df_filtered)
 
-# --- Top 10 estados por receita ---
+# --- Top 10 estados por GMV ---
 col_left, col_right = st.columns(2)
 
 with col_left:
-    st.markdown("### Top 10 Estados por Receita")
+    st.markdown("### Top 10 Estados por GMV")
     top_revenue = state_metrics.sort_values("total_revenue", ascending=False).head(10)
 
     fig = go.Figure()
@@ -56,7 +62,7 @@ with col_left:
     ))
     fig.update_layout(
         template="plotly_dark", height=450,
-        xaxis_title="Estado", yaxis_title="Receita (R$)",
+        xaxis_title="Estado", yaxis_title="GMV (R$)",
     )
     plot_chart(fig)
 
@@ -157,19 +163,19 @@ plot_chart(fig)
 # --- Tabela completa ---
 st.markdown("### Tabela Completa por Estado")
 display_df = state_metrics.copy()
-display_df["total_revenue"] = display_df["total_revenue"].apply(lambda x: f"R$ {x:,.0f}")
-display_df["avg_ticket"] = display_df["avg_ticket"].apply(lambda x: f"R$ {x:,.2f}")
-display_df["avg_freight"] = display_df["avg_freight"].apply(lambda x: f"R$ {x:,.2f}")
+display_df["total_revenue"] = display_df["total_revenue"].apply(format_currency)
+display_df["avg_ticket"] = display_df["avg_ticket"].apply(format_currency)
+display_df["avg_freight"] = display_df["avg_freight"].apply(format_currency)
 display_df["avg_review"] = display_df["avg_review"].round(2)
 display_df["delay_rate"] = display_df["delay_rate"].apply(lambda x: f"{x*100:.1f}%")
 display_df["avg_delivery_days"] = display_df["avg_delivery_days"].round(1)
 
 display_df.columns = [
-    "Estado", "Pedidos", "Receita", "Ticket Médio",
+    "Estado", "Pedidos", "GMV", "Ticket Médio",
     "Frete Médio", "Nota Média", "Entrega (dias)", "Taxa Atraso",
 ]
 st.dataframe(
     display_df.sort_values("Pedidos", ascending=False),
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )

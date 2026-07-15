@@ -8,7 +8,6 @@ em cada interação do usuário com o dashboard Streamlit.
 from pathlib import Path
 
 import pandas as pd
-import numpy as np
 import streamlit as st
 
 
@@ -43,25 +42,74 @@ def load_rfm() -> pd.DataFrame | None:
 
 
 def get_delivered(df: pd.DataFrame) -> pd.DataFrame:
-    """Filtra pedidos entregues com dados completos de entrega."""
+    """Filtra itens de pedidos entregues com dados completos de entrega."""
     mask = (df["is_delivered"] == 1) & df["is_late"].notna()
     return df[mask].copy()
 
 
+def get_order_facts(df: pd.DataFrame) -> pd.DataFrame:
+    """Consolida a base de itens em uma linha por pedido.
+
+    Métricas como avaliação, atraso e prazo de entrega pertencem ao pedido e
+    não devem ser ponderadas pela quantidade de itens comprados.
+    """
+    return df.groupby("order_id", as_index=False).agg(
+        purchase_year_month=("purchase_year_month", "first"),
+        customer_state=("customer_state", "first"),
+        order_revenue=("item_revenue", "sum"),
+        order_total_value=("item_total_value", "sum"),
+        order_freight=("freight_value", "sum"),
+        review_score=("review_score", "first"),
+        delivery_days=("delivery_days", "first"),
+        delivery_delta_days=("delivery_delta_days", "first"),
+        delay_days=("delay_days", "first"),
+        is_late=("is_late", "first"),
+        is_delivered=("is_delivered", "first"),
+    )
+
+
+def get_delivered_orders(df: pd.DataFrame) -> pd.DataFrame:
+    """Retorna uma linha por pedido entregue com logística observável."""
+    orders = get_order_facts(df)
+    return orders[(orders["is_delivered"] == 1) & orders["is_late"].notna()].copy()
+
+
+def get_order_seller_facts(df: pd.DataFrame) -> pd.DataFrame:
+    """Consolida a base em uma linha por combinação de pedido e vendedor."""
+    return df.groupby(["order_id", "seller_id"], as_index=False).agg(
+        total_items=("order_item_id", "count"),
+        order_revenue=("item_revenue", "sum"),
+        review_score=("review_score", "first"),
+        delivery_days=("delivery_days", "first"),
+        delay_days=("delay_days", "first"),
+        is_late=("is_late", "first"),
+        is_delivered=("is_delivered", "first"),
+        seller_state=("seller_state", "first"),
+        seller_city=("seller_city", "first"),
+    )
+
+
+def get_delivered_order_sellers(df: pd.DataFrame) -> pd.DataFrame:
+    """Retorna uma linha por pedido-vendedor entregue."""
+    order_sellers = get_order_seller_facts(df)
+    mask = (order_sellers["is_delivered"] == 1) & order_sellers["is_late"].notna()
+    return order_sellers[mask].copy()
+
+
 def compute_kpis(df: pd.DataFrame) -> dict:
     """Calcula os KPIs principais do e-commerce."""
-    orders_revenue = df.groupby("order_id")["item_revenue"].sum()
-    delivered = get_delivered(df)
+    orders = get_order_facts(df)
+    delivered_orders = orders[(orders["is_delivered"] == 1) & orders["is_late"].notna()]
 
     return {
-        "total_orders": df["order_id"].nunique(),
+        "total_orders": len(orders),
         "total_items": len(df),
-        "total_revenue": df["item_revenue"].sum(),
-        "total_revenue_freight": df["item_total_value"].sum(),
-        "avg_ticket": orders_revenue.mean(),
-        "avg_review": df["review_score"].mean(),
-        "avg_delivery_days": delivered["delivery_days"].mean(),
-        "delay_rate": delivered["is_late"].mean(),
+        "total_revenue": orders["order_revenue"].sum(),
+        "total_revenue_freight": orders["order_total_value"].sum(),
+        "avg_ticket": orders["order_revenue"].mean(),
+        "avg_review": orders["review_score"].mean(),
+        "avg_delivery_days": delivered_orders["delivery_days"].mean(),
+        "delay_rate": delivered_orders["is_late"].mean(),
         "n_categories": df["product_category_name_english"].nunique(),
         "n_states": df["customer_state"].nunique(),
         "n_sellers": df["seller_id"].nunique(),
@@ -69,86 +117,119 @@ def compute_kpis(df: pd.DataFrame) -> dict:
 
 
 def compute_monthly_revenue(df: pd.DataFrame) -> pd.DataFrame:
-    """Calcula receita mensal agregada."""
-    monthly = df.groupby("purchase_year_month").agg(
+    """Calcula GMV mensal agregado."""
+    monthly_items = df.groupby("purchase_year_month").agg(
         revenue=("item_revenue", "sum"),
         total_value=("item_total_value", "sum"),
-        orders=("order_id", "nunique"),
         items=("order_item_id", "count"),
-        avg_review=("review_score", "mean"),
     ).reset_index()
 
-    monthly["ticket_medio"] = monthly["revenue"] / monthly["orders"]
+    orders = get_order_facts(df)
+    monthly_orders = orders.groupby("purchase_year_month").agg(
+        orders=("order_id", "count"),
+        avg_review=("review_score", "mean"),
+        ticket_medio=("order_revenue", "mean"),
+    ).reset_index()
+
+    monthly = monthly_items.merge(monthly_orders, on="purchase_year_month", how="left")
     monthly = monthly.sort_values("purchase_year_month")
     return monthly
 
 
 def compute_state_metrics(df: pd.DataFrame) -> pd.DataFrame:
     """Calcula métricas por estado do cliente."""
-    delivered = get_delivered(df)
-    state = delivered.groupby("customer_state").agg(
-        total_orders=("order_id", "nunique"),
-        total_revenue=("item_revenue", "sum"),
-        avg_ticket=("item_revenue", "mean"),
-        avg_freight=("freight_value", "mean"),
+    orders = get_order_facts(df)
+    state_sales = orders.groupby("customer_state").agg(
+        total_orders=("order_id", "count"),
+        total_revenue=("order_revenue", "sum"),
+        avg_ticket=("order_revenue", "mean"),
+        avg_freight=("order_freight", "mean"),
+    ).reset_index()
+
+    delivered_orders = orders[(orders["is_delivered"] == 1) & orders["is_late"].notna()]
+    state_delivery = delivered_orders.groupby("customer_state").agg(
         avg_review=("review_score", "mean"),
         avg_delivery_days=("delivery_days", "mean"),
         delay_rate=("is_late", "mean"),
     ).reset_index()
-    return state
+    return state_sales.merge(state_delivery, on="customer_state", how="left")
 
 
 def compute_category_metrics(df: pd.DataFrame) -> pd.DataFrame:
     """Calcula métricas por categoria de produto."""
-    delivered = get_delivered(df)
-    cat = delivered.groupby("product_category_name_english").agg(
+    category_sales = df.groupby("product_category_name_english").agg(
         total_items=("order_item_id", "count"),
         total_revenue=("item_revenue", "sum"),
         avg_price=("price", "mean"),
-        avg_review=("review_score", "mean"),
         avg_freight=("freight_value", "mean"),
+    ).reset_index()
+
+    delivered = get_delivered(df)
+    order_categories = delivered.groupby(
+        ["order_id", "product_category_name_english"], as_index=False
+    ).agg(
+        review_score=("review_score", "first"),
+        is_late=("is_late", "first"),
+    )
+    category_delivery = order_categories.groupby("product_category_name_english").agg(
+        avg_review=("review_score", "mean"),
         delay_rate=("is_late", "mean"),
     ).reset_index()
-    cat = cat.dropna(subset=["product_category_name_english"])
-    return cat
+    return category_sales.merge(
+        category_delivery, on="product_category_name_english", how="left"
+    )
 
 
 def compute_seller_metrics(df: pd.DataFrame) -> pd.DataFrame:
     """Calcula métricas por vendedor."""
-    delivered = get_delivered(df)
-    seller = delivered.groupby("seller_id").agg(
-        total_items=("order_item_id", "count"),
+    order_sellers = get_order_seller_facts(df)
+    seller_sales = order_sellers.groupby("seller_id").agg(
+        total_items=("total_items", "sum"),
         total_orders=("order_id", "nunique"),
-        total_revenue=("item_revenue", "sum"),
+        total_revenue=("order_revenue", "sum"),
+        seller_state=("seller_state", "first"),
+        seller_city=("seller_city", "first"),
+    ).reset_index()
+
+    delivered = order_sellers[
+        (order_sellers["is_delivered"] == 1) & order_sellers["is_late"].notna()
+    ]
+    seller_delivery = delivered.groupby("seller_id").agg(
+        delivered_orders=("order_id", "nunique"),
+        late_orders=("is_late", "sum"),
         avg_review=("review_score", "mean"),
         avg_delivery_days=("delivery_days", "mean"),
         delay_rate=("is_late", "mean"),
         avg_delay=("delay_days", "mean"),
-        seller_state=("seller_state", "first"),
-        seller_city=("seller_city", "first"),
     ).reset_index()
-    return seller
+    return seller_sales.merge(seller_delivery, on="seller_id", how="left")
 
 
 def format_currency(value: float) -> str:
     """Formata valor como moeda brasileira (valor completo)."""
-    return f"R$ {value:,.2f}"
+    formatted = f"{value:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    return f"R$ {formatted}"
 
 def format_currency_compact(value: float) -> str:
     """Formata valor monetário de forma abreviada (K, M, B) para dashboards."""
     if value >= 1_000_000_000:
-        return f"R$ {value / 1_000_000_000:.2f}B"
+        return f"R$ {value / 1_000_000_000:.2f} bi".replace(".", ",")
     elif value >= 1_000_000:
-        return f"R$ {value / 1_000_000:.2f}M"
+        return f"R$ {value / 1_000_000:.2f} mi".replace(".", ",")
     elif value >= 1_000:
-        return f"R$ {value / 1_000:.1f}k"
+        return f"R$ {value / 1_000:.1f} mil".replace(".", ",")
     else:
-        return f"R$ {value:.2f}"
+        return f"R$ {value:.2f}".replace(".", ",")
 
 
 def format_pct(value: float) -> str:
     """Formata valor como percentual."""
     return f"{value * 100:.1f}%"
+
+
+def format_integer(value: int | float) -> str:
+    """Formata inteiro com separador de milhar brasileiro."""
+    return f"{value:,.0f}".replace(",", ".")
 
 import base64
 
@@ -316,4 +397,4 @@ def plot_chart(fig):
         plot_bgcolor="rgba(0,0,0,0)",
         hoverlabel_bgcolor="rgba(15, 23, 42, 0.95)",
     )
-    st.plotly_chart(fig, use_container_width=True, theme=None)
+    st.plotly_chart(fig, width="stretch", theme=None)

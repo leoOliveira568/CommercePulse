@@ -1,5 +1,13 @@
+from pathlib import Path
+import sys
+
 import streamlit as st
-from utils import set_page_style
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+from dashboard.utils import set_page_style
 
 st.set_page_config(
     page_title="CommercePulse — E-commerce Analytics",
@@ -12,8 +20,12 @@ st.set_page_config(
 set_page_style()
 
 # --- Logo Nativa do Streamlit ---
-import os
-st.logo("dashboard/assets/logo_with_text.png", icon_image="dashboard/assets/logo.png", size="large")
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+st.logo(
+    str(ASSETS_DIR / "logo_with_text.png"),
+    icon_image=str(ASSETS_DIR / "logo.png"),
+    size="large",
+)
 
 # --- Navegação Nativa do Streamlit (Sem Piscar) ---
 pages = {

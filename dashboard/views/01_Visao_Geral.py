@@ -1,24 +1,33 @@
 """
 CommercePulse Dashboard — Visão Geral.
 
-KPIs principais, receita mensal e visão macro do e-commerce.
+KPIs principais, GMV mensal e visão macro do e-commerce.
 """
 
-import sys
-from pathlib import Path
-
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, compute_kpis, compute_monthly_revenue, format_currency, format_currency_compact, format_pct, set_page_style, plot_chart
+from dashboard.utils import (
+    compute_kpis,
+    compute_monthly_revenue,
+    format_currency,
+    format_currency_compact,
+    format_integer,
+    format_pct,
+    load_data,
+    plot_chart,
+    set_page_style,
+)
 
-st.set_page_config(page_title="Visão Geral — CommercePulse", page_icon=":material/analytics:", layout="wide")
+st.set_page_config(
+    page_title="Visão Geral — CommercePulse",
+    page_icon=":material/analytics:",
+    layout="wide",
+)
 set_page_style()
 
 st.title("Visão Geral")
-st.markdown("KPIs principais e evolução da receita do e-commerce.")
+st.markdown("KPIs principais e evolução do valor bruto de mercadorias (GMV).")
 
 # --- Carregar dados ---
 df = load_data()
@@ -45,23 +54,35 @@ kpis = compute_kpis(df_filtered)
 st.markdown("### KPIs Principais")
 
 col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Pedidos", f"{kpis['total_orders']:,}")
-col2.metric("Receita", format_currency_compact(kpis["total_revenue"]), help=format_currency(kpis["total_revenue"]))
-col3.metric("Ticket Médio", format_currency_compact(kpis["avg_ticket"]), help=format_currency(kpis["avg_ticket"]))
+col1.metric("Pedidos", format_integer(kpis["total_orders"]))
+col2.metric(
+    "GMV (Produtos)",
+    format_currency_compact(kpis["total_revenue"]),
+    help=format_currency(kpis["total_revenue"]),
+)
+col3.metric(
+    "Ticket Médio",
+    format_currency_compact(kpis["avg_ticket"]),
+    help=format_currency(kpis["avg_ticket"]),
+)
 col4.metric("Nota Média", f"{kpis['avg_review']:.2f}")
 col5.metric("Taxa de Atraso", format_pct(kpis["delay_rate"]))
 
 col6, col7, col8, col9, col10 = st.columns(5)
-col6.metric("Itens Vendidos", f"{kpis['total_items']:,}")
-col7.metric("Receita + Frete", format_currency_compact(kpis["total_revenue_freight"]), help=format_currency(kpis["total_revenue_freight"]))
+col6.metric("Itens em Pedidos", format_integer(kpis["total_items"]))
+col7.metric(
+    "GMV + Frete",
+    format_currency_compact(kpis["total_revenue_freight"]),
+    help=format_currency(kpis["total_revenue_freight"]),
+)
 col8.metric("Entrega Média", f"{kpis['avg_delivery_days']:.0f} dias")
 col9.metric("Categorias", f"{kpis['n_categories']}")
-col10.metric("Vendedores", f"{kpis['n_sellers']:,}")
+col10.metric("Vendedores", format_integer(kpis["n_sellers"]))
 
 st.markdown("---")
 
-# --- Receita Mensal ---
-st.markdown("### Evolução da Receita Mensal")
+# --- GMV Mensal ---
+st.markdown("### Evolução do GMV Mensal")
 
 monthly = compute_monthly_revenue(df_filtered)
 
@@ -70,7 +91,7 @@ fig.add_trace(go.Scatter(
     x=monthly["purchase_year_month"],
     y=monthly["revenue"],
     mode="lines+markers",
-    name="Receita (Produtos)",
+    name="GMV (Produtos)",
     line=dict(color="#636EFA", width=2.5),
     marker=dict(size=6),
     fill="tozeroy",
@@ -81,7 +102,7 @@ fig.add_trace(go.Scatter(
     x=monthly["purchase_year_month"],
     y=monthly["total_value"],
     mode="lines+markers",
-    name="Receita (Produtos + Frete)",
+    name="GMV (Produtos + Frete)",
     line=dict(color="#00CC96", width=2, dash="dot"),
     marker=dict(size=5),
 ))
@@ -91,7 +112,7 @@ fig.update_layout(
     height=450,
     title_font_size=16,
     xaxis_title="Mês",
-    yaxis_title="Receita (R$)",
+    yaxis_title="GMV (R$)",
     legend=dict(x=0.01, y=0.99),
     hovermode="x unified",
 )

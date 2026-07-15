@@ -30,28 +30,43 @@ def assign_rfm_segment(row: pd.Series) -> str:
         return "Others"
 
 
-def main():
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    PROCESSED_DIR = BASE_DIR / "data" / "processed"
+def percentile_score(series: pd.Series, higher_is_better: bool = True) -> pd.Series:
+    """Converte uma métrica contínua em score de 1 a 5 preservando empates."""
+    percentile = series.rank(method="average", pct=True)
+    score = np.ceil(percentile * 5).clip(1, 5).astype(int)
+    return score if higher_is_better else 6 - score
 
-    input_path = PROCESSED_DIR / "commercepulse_orders_items.csv"
-    output_path = PROCESSED_DIR / "commercepulse_rfm.csv"
 
-    print("Carregando base processada...")
-    df = pd.read_csv(input_path)
-    df["order_purchase_timestamp"] = pd.to_datetime(df["order_purchase_timestamp"], errors="coerce")
+def frequency_score(series: pd.Series) -> pd.Series:
+    """Pontua frequência sem separar artificialmente clientes empatados.
 
-    # Apenas pedidos entregues
+    A base Olist é muito concentrada em uma única compra. Faixas de negócio
+    mantêm todos os clientes com a mesma frequência no mesmo score.
+    """
+    return pd.Series(
+        np.select(
+            [series <= 1, series == 2, series == 3, series == 4],
+            [1, 2, 3, 4],
+            default=5,
+        ),
+        index=series.index,
+        dtype="int64",
+    )
+
+
+def build_rfm(df: pd.DataFrame) -> pd.DataFrame:
+    """Constrói a tabela RFM a partir da base processada de itens."""
+    df = df.copy()
+    df["order_purchase_timestamp"] = pd.to_datetime(
+        df["order_purchase_timestamp"], errors="coerce"
+    )
+
     df_delivered = df[df["order_status"] == "delivered"].copy()
+    if df_delivered.empty:
+        raise ValueError("A base não contém pedidos entregues para calcular RFM.")
 
-    # Data de referência: dia seguinte à última compra
     reference_date = df_delivered["order_purchase_timestamp"].max() + pd.Timedelta(days=1)
-    print(f"Data de referência para Recency: {reference_date.date()}")
 
-    # --- Calcular métricas RFM por cliente ---
-    print("Calculando métricas RFM...")
-
-    # Receita total por pedido (evita duplicação por item)
     order_revenue = df_delivered.groupby(["customer_unique_id", "order_id"]).agg(
         order_revenue=("item_revenue", "sum"),
         order_date=("order_purchase_timestamp", "first"),
@@ -63,24 +78,25 @@ def main():
         monetary=("order_revenue", "sum"),
     ).reset_index()
 
-    # --- Scores RFM (1-5, usando quintis) ---
-    print("Atribuindo scores RFM...")
-
-    # Recency: menor = melhor (score 5)
-    rfm["R_score"] = pd.qcut(rfm["recency"], q=5, labels=[5, 4, 3, 2, 1], duplicates="drop").astype(int)
-
-    # Frequency: a maioria tem 1 compra, então usamos rank para evitar bins degenerados
-    rfm["F_score"] = pd.qcut(rfm["frequency"].rank(method="first"), q=5, labels=[1, 2, 3, 4, 5], duplicates="drop").astype(int)
-
-    # Monetary: maior = melhor (score 5)
-    rfm["M_score"] = pd.qcut(rfm["monetary"], q=5, labels=[1, 2, 3, 4, 5], duplicates="drop").astype(int)
-
-    # Score combinado
-    rfm["RFM_score"] = rfm["R_score"] + rfm["F_score"] + rfm["M_score"]
-
-    # --- Segmentação ---
-    print("Aplicando segmentação de clientes...")
+    rfm["R_score"] = percentile_score(rfm["recency"], higher_is_better=False)
+    rfm["F_score"] = frequency_score(rfm["frequency"])
+    rfm["M_score"] = percentile_score(rfm["monetary"])
+    rfm["RFM_score"] = rfm[["R_score", "F_score", "M_score"]].sum(axis=1)
     rfm["segment"] = rfm.apply(assign_rfm_segment, axis=1)
+    return rfm
+
+
+def main():
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    PROCESSED_DIR = BASE_DIR / "data" / "processed"
+
+    input_path = PROCESSED_DIR / "commercepulse_orders_items.csv"
+    output_path = PROCESSED_DIR / "commercepulse_rfm.csv"
+
+    print("Carregando base processada...")
+    df = pd.read_csv(input_path)
+    print("Calculando métricas e segmentos RFM...")
+    rfm = build_rfm(df)
 
     # --- Salvar ---
     rfm.to_csv(output_path, index=False)

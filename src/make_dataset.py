@@ -23,8 +23,10 @@ def main():
         products = pd.read_csv(RAW_DIR / "olist_products_dataset.csv")
         category_translation = pd.read_csv(RAW_DIR / "product_category_name_translation.csv")
     except FileNotFoundError as e:
-        print(f"Erro ao carregar arquivos: {e}")
-        return
+        raise SystemExit(
+            "Dados brutos não encontrados. Extraia os CSVs da Olist em "
+            f"{RAW_DIR} antes de executar o pipeline. Detalhe: {e}"
+        ) from e
     
     print("Processando datas...")
     # Converter colunas de data da tabela de pedidos
@@ -58,7 +60,7 @@ def main():
     df = df.merge(category_translation, on="product_category_name", how="left")
     df = df.merge(sellers, on="seller_id", how="left")
     # ATENÇÃO: total_payment_value está no nível do pedido e será repetido por item.
-    # Para análises de receita, prefira item_revenue ou item_total_value.
+    # Para análises de GMV, prefira item_revenue ou item_total_value.
     df = df.merge(payments_agg, on="order_id", how="left")
     df = df.merge(reviews_agg, on="order_id", how="left")
     
@@ -70,10 +72,14 @@ def main():
     df["purchase_year_month"] = df["order_purchase_timestamp"].dt.to_period("M").astype(str)
     
     # delivery_days (diferença em dias)
-    df["delivery_days"] = (df["order_delivered_customer_date"] - df["order_purchase_timestamp"]).dt.days
+    df["delivery_days"] = (
+        df["order_delivered_customer_date"] - df["order_purchase_timestamp"]
+    ).dt.days
     
     # estimated_delivery_days
-    df["estimated_delivery_days"] = (df["order_estimated_delivery_date"] - df["order_purchase_timestamp"]).dt.days
+    df["estimated_delivery_days"] = (
+        df["order_estimated_delivery_date"] - df["order_purchase_timestamp"]
+    ).dt.days
     
     # delivery_delta_days: negativo = entregou antes, positivo = entregou depois
     df["delivery_delta_days"] = (
@@ -86,8 +92,12 @@ def main():
     )
     
     # is_late: NaN para pedidos sem data de entrega (evita classificar cancelados como "no prazo")
+    has_delivery_deadline = (
+        df["order_delivered_customer_date"].notna()
+        & df["order_estimated_delivery_date"].notna()
+    )
     df["is_late"] = np.where(
-        df["order_delivered_customer_date"].notna(),
+        has_delivery_deadline,
         (df["order_delivered_customer_date"] > df["order_estimated_delivery_date"]).astype(int),
         np.nan,
     )
@@ -95,7 +105,7 @@ def main():
     # is_delivered
     df["is_delivered"] = (df["order_status"] == "delivered").astype(int)
     
-    # item_revenue (valor do produto)
+    # item_revenue (valor bruto do item; proxy de GMV, não receita contábil)
     df["item_revenue"] = df["price"]
     
     # item_total_value (produto + frete)

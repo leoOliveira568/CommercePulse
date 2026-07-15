@@ -14,10 +14,7 @@ Dependências:
 from pathlib import Path
 
 import pandas as pd
-import numpy as np
-import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,8 +39,19 @@ def load_data() -> pd.DataFrame:
     return df
 
 
+def get_delivered_orders(df: pd.DataFrame) -> pd.DataFrame:
+    """Consolida métricas logísticas em uma linha por pedido entregue."""
+    orders = df.groupby("order_id", as_index=False).agg(
+        customer_state=("customer_state", "first"),
+        review_score=("review_score", "first"),
+        is_delivered=("is_delivered", "first"),
+        is_late=("is_late", "first"),
+    )
+    return orders[(orders["is_delivered"] == 1) & orders["is_late"].notna()].copy()
+
+
 def export_revenue_monthly(df: pd.DataFrame) -> None:
-    """Exporta gráfico de receita mensal."""
+    """Exporta gráfico de GMV mensal."""
     monthly = df.groupby("purchase_year_month").agg(
         revenue=("item_revenue", "sum"),
         orders=("order_id", "nunique"),
@@ -59,17 +67,17 @@ def export_revenue_monthly(df: pd.DataFrame) -> None:
         fillcolor="rgba(99, 110, 250, 0.1)",
     ))
     fig.update_layout(
-        title="Evolução da Receita Mensal",
+        title="Evolução do GMV Mensal",
         template=PLOTLY_TEMPLATE,
         height=400, width=900,
-        xaxis_title="Mês", yaxis_title="Receita (R$)",
+        xaxis_title="Mês", yaxis_title="GMV (R$)",
     )
-    fig.write_image(str(CHARTS_DIR / "receita_mensal.png"), scale=2)
-    print("  ✅ receita_mensal.png")
+    fig.write_image(str(CHARTS_DIR / "gmv_mensal.png"), scale=2)
+    print("  [OK] gmv_mensal.png")
 
 
 def export_top_states(df: pd.DataFrame) -> None:
-    """Exporta gráfico de top estados por receita."""
+    """Exporta gráfico de top estados por GMV."""
     state = df.groupby("customer_state").agg(
         revenue=("item_revenue", "sum"),
     ).reset_index().sort_values("revenue", ascending=False).head(10)
@@ -83,17 +91,17 @@ def export_top_states(df: pd.DataFrame) -> None:
         textposition="outside",
     ))
     fig.update_layout(
-        title="Top 10 Estados por Receita",
+        title="Top 10 Estados por GMV",
         template=PLOTLY_TEMPLATE,
         height=400, width=800,
-        xaxis_title="Estado", yaxis_title="Receita (R$)",
+        xaxis_title="Estado", yaxis_title="GMV (R$)",
     )
-    fig.write_image(str(CHARTS_DIR / "top_estados_receita.png"), scale=2)
-    print("  ✅ top_estados_receita.png")
+    fig.write_image(str(CHARTS_DIR / "top_estados_gmv.png"), scale=2)
+    print("  [OK] top_estados_gmv.png")
 
 
 def export_top_categories(df: pd.DataFrame) -> None:
-    """Exporta gráfico de top categorias por receita."""
+    """Exporta gráfico de top categorias por GMV."""
     cat = df.groupby("product_category_name_english").agg(
         revenue=("item_revenue", "sum"),
     ).reset_index().dropna().sort_values("revenue", ascending=True).tail(10)
@@ -108,19 +116,19 @@ def export_top_categories(df: pd.DataFrame) -> None:
         textposition="outside",
     ))
     fig.update_layout(
-        title="Top 10 Categorias por Receita",
+        title="Top 10 Categorias por GMV",
         template=PLOTLY_TEMPLATE,
         height=450, width=800,
-        xaxis_title="Receita (R$)", yaxis_title="",
+        xaxis_title="GMV (R$)", yaxis_title="",
         margin=dict(l=180),
     )
-    fig.write_image(str(CHARTS_DIR / "top_categorias_receita.png"), scale=2)
-    print("  ✅ top_categorias_receita.png")
+    fig.write_image(str(CHARTS_DIR / "top_categorias_gmv.png"), scale=2)
+    print("  [OK] top_categorias_gmv.png")
 
 
 def export_delay_impact(df: pd.DataFrame) -> None:
     """Exporta gráfico de impacto do atraso na avaliação."""
-    delivered = df[(df["is_delivered"] == 1) & df["is_late"].notna()].copy()
+    delivered = get_delivered_orders(df)
     delivered["status"] = delivered["is_late"].map({0: "No Prazo", 1: "Atrasado"})
 
     avg = delivered.groupby("status")["review_score"].mean().reset_index()
@@ -135,19 +143,19 @@ def export_delay_impact(df: pd.DataFrame) -> None:
         textposition="outside",
     ))
     fig.update_layout(
-        title="Impacto do Atraso na Avaliação do Cliente",
+        title="Avaliação do Cliente por Status de Entrega",
         template=PLOTLY_TEMPLATE,
         height=400, width=600,
         xaxis_title="Status da Entrega", yaxis_title="Nota Média",
         yaxis_range=[0, 5.5],
     )
     fig.write_image(str(CHARTS_DIR / "impacto_atraso_avaliacao.png"), scale=2)
-    print("  ✅ impacto_atraso_avaliacao.png")
+    print("  [OK] impacto_atraso_avaliacao.png")
 
 
 def export_delay_by_state(df: pd.DataFrame) -> None:
     """Exporta gráfico de taxa de atraso por estado."""
-    delivered = df[(df["is_delivered"] == 1) & df["is_late"].notna()]
+    delivered = get_delivered_orders(df)
     state = delivered.groupby("customer_state").agg(
         delay_rate=("is_late", "mean"),
     ).reset_index().sort_values("delay_rate", ascending=False)
@@ -167,7 +175,7 @@ def export_delay_by_state(df: pd.DataFrame) -> None:
         xaxis_title="Estado", yaxis_title="Taxa de Atraso (%)",
     )
     fig.write_image(str(CHARTS_DIR / "atraso_por_estado.png"), scale=2)
-    print("  ✅ atraso_por_estado.png")
+    print("  [OK] atraso_por_estado.png")
 
 
 def main():

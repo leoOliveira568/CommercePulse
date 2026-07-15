@@ -1,0 +1,2 @@
+"""CommercePulse Streamlit dashboard package."""
+

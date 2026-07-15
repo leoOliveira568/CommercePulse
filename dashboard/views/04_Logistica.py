@@ -4,19 +4,25 @@ CommercePulse Dashboard — Análise de Logística.
 Taxa de atraso, tempo de entrega, impacto na satisfação.
 """
 
-import sys
-from pathlib import Path
-
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import streamlit as st
 import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, get_delivered, compute_state_metrics, set_page_style, plot_chart
+from dashboard.utils import (
+    compute_state_metrics,
+    format_integer,
+    get_delivered_orders,
+    load_data,
+    plot_chart,
+    set_page_style,
+)
 
-st.set_page_config(page_title="Logística — CommercePulse", page_icon=":material/local_shipping:", layout="wide")
+st.set_page_config(
+    page_title="Logística — CommercePulse",
+    page_icon=":material/local_shipping:",
+    layout="wide",
+)
 set_page_style()
 
 st.title("Logística e Entregas")
@@ -31,7 +37,7 @@ selected_years = st.sidebar.multiselect("Ano", years, default=years, key="log_ye
 
 mask = df["purchase_year"].isin(selected_years)
 df_filtered = df[mask]
-delivered = get_delivered(df_filtered)
+delivered = get_delivered_orders(df_filtered)
 
 if delivered.empty:
     st.warning("Nenhum dado encontrado com os filtros selecionados.")
@@ -44,7 +50,7 @@ col1, col2, col3, col4 = st.columns(4)
 col1.metric("Taxa de Atraso", f"{delivered['is_late'].mean()*100:.1f}%")
 col2.metric("Entrega Média", f"{delivered['delivery_days'].mean():.1f} dias")
 col3.metric("Entrega Mediana", f"{delivered['delivery_days'].median():.0f} dias")
-col4.metric("Itens Atrasados", f"{int(delivered['is_late'].sum()):,}")
+col4.metric("Pedidos Atrasados", format_integer(delivered["is_late"].sum()))
 
 st.markdown("---")
 
@@ -62,8 +68,12 @@ with col_left:
         template="plotly_dark",
         height=400,
     )
-    fig.add_vline(x=delivered["delivery_days"].mean(), line_dash="dash",
-                  line_color="yellow", annotation_text=f"Média: {delivered['delivery_days'].mean():.0f}d")
+    fig.add_vline(
+        x=delivered["delivery_days"].mean(),
+        line_dash="dash",
+        line_color="yellow",
+        annotation_text=f"Média: {delivered['delivery_days'].mean():.0f}d",
+    )
     plot_chart(fig)
 
 with col_right:
@@ -79,16 +89,20 @@ with col_right:
             template="plotly_dark",
             height=400,
         )
-        fig.add_vline(x=late["delay_days"].mean(), line_dash="dash",
-                      line_color="yellow", annotation_text=f"Média: {late['delay_days'].mean():.0f}d")
+        fig.add_vline(
+            x=late["delay_days"].mean(),
+            line_dash="dash",
+            line_color="yellow",
+            annotation_text=f"Média: {late['delay_days'].mean():.0f}d",
+        )
         plot_chart(fig)
     else:
-        st.info("Nenhum item atrasado no período selecionado.")
+        st.info("Nenhum pedido atrasado no período selecionado.")
 
 st.markdown("---")
 
 # --- Atraso vs Avaliação ---
-st.markdown("### Impacto do Atraso na Satisfação")
+st.markdown("### Avaliação por Status de Entrega")
 
 col_left2, col_right2 = st.columns(2)
 
@@ -113,11 +127,15 @@ with col_left2:
 
 with col_right2:
     # Nota média por status
-    avg_by_status = delivered_plot.groupby("status_entrega")["review_score"].agg(["mean", "median", "count"]).reset_index()
-    avg_by_status.columns = ["Status", "Nota Média", "Nota Mediana", "Qtd Itens"]
+    avg_by_status = (
+        delivered_plot.groupby("status_entrega")["review_score"]
+        .agg(["mean", "median", "count"])
+        .reset_index()
+    )
+    avg_by_status.columns = ["Status", "Nota Média", "Nota Mediana", "Qtd Pedidos"]
 
     st.markdown("#### Comparação de Notas")
-    st.dataframe(avg_by_status, use_container_width=True, hide_index=True)
+    st.dataframe(avg_by_status, width="stretch", hide_index=True)
 
     # Nota média por faixa de atraso
     st.markdown("#### Nota por Faixa de Atraso")
@@ -125,12 +143,18 @@ with col_right2:
     if not late_copy.empty:
         bins = [0, 3, 7, 14, 30, float("inf")]
         labels = ["1-3 dias", "4-7 dias", "8-14 dias", "15-30 dias", "30+ dias"]
-        late_copy["faixa_atraso"] = pd.cut(late_copy["delay_days"], bins=bins, labels=labels, right=True)
+        late_copy["faixa_atraso"] = pd.cut(
+            late_copy["delay_days"], bins=bins, labels=labels, right=True
+        )
 
-        faixa = late_copy.groupby("faixa_atraso", observed=True)["review_score"].agg(["mean", "count"]).reset_index()
-        faixa.columns = ["Faixa de Atraso", "Nota Média", "Qtd Itens"]
+        faixa = (
+            late_copy.groupby("faixa_atraso", observed=True)["review_score"]
+            .agg(["mean", "count"])
+            .reset_index()
+        )
+        faixa.columns = ["Faixa de Atraso", "Nota Média", "Qtd Pedidos"]
         faixa["Nota Média"] = faixa["Nota Média"].round(2)
-        st.dataframe(faixa, use_container_width=True, hide_index=True)
+        st.dataframe(faixa, width="stretch", hide_index=True)
 
 st.markdown("---")
 
@@ -160,7 +184,7 @@ fig.update_layout(
 plot_chart(fig)
 
 # --- Tempo médio de entrega por estado ---
-st.markdown("### Tempo de Entrega (No Prazo)")
+st.markdown("### Tempo Médio de Entrega por Estado")
 
 state_delivery = state_metrics.sort_values("avg_delivery_days", ascending=False)
 

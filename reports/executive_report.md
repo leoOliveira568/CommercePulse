@@ -10,7 +10,7 @@
 
 ## 1. Resumo Executivo
 
-O e-commerce brasileiro analisado apresenta **crescimento consistente de receita** ao longo dos 2 anos do período, com uma base de ~95 mil clientes únicos e ~99 mil pedidos processados por ~3 mil vendedores em 27 estados. A **logística é o principal ponto de dor**: 7,9% dos itens são entregues com atraso, e pedidos atrasados recebem notas significativamente inferiores. A **concentração geográfica** no Sudeste (SP, RJ, MG) domina a receita, mas estados emergentes apresentam alto potencial de crescimento. A **análise RFM** revela que a maioria dos clientes são de compra única, indicando uma grande oportunidade de retenção e recompra.
+O e-commerce brasileiro analisado apresenta forte expansão entre 2016 e 2018, com estabilização do volume mensal no último ano completo, uma base de ~95 mil clientes únicos e ~99 mil pedidos processados por ~3 mil vendedores em 27 estados. A **logística é um ponto relevante de atenção**: 8,1% dos pedidos entregues chegam após a data estimada, e esses pedidos estão associados a avaliações substancialmente inferiores. A **concentração geográfica** no Sudeste (SP, RJ, MG) representa 63,4% do GMV. A **análise RFM** mostra que 97,0% dos clientes entregues fizeram uma única compra, indicando oportunidade de testar iniciativas de retenção e recompra.
 
 ---
 
@@ -22,21 +22,21 @@ O e-commerce brasileiro analisado apresenta **crescimento consistente de receita
 |---------|-------|
 | Total de pedidos | 98.666 |
 | Total de itens vendidos | 112.650 |
-| Receita total (produtos) | R$ 13.591.643,70 |
-| Receita total (produtos + frete) | R$ 15.843.553,24 |
+| GMV dos produtos | R$ 13.591.643,70 |
+| GMV dos produtos + frete | R$ 15.843.553,24 |
 | Ticket médio por pedido | R$ 137,75 |
-| Nota média dos clientes | 4,03 / 5,0 |
-| Tempo médio de entrega | 12 dias |
-| Taxa de atraso | 7,9% |
+| Nota média por pedido avaliado | 4,11 / 5,0 |
+| Tempo médio de entrega por pedido | 12,1 dias |
+| Taxa de atraso por pedido entregue | 8,1% |
 | Categorias de produto | 71 |
 | Estados atendidos | 27 |
 | Vendedores ativos | 3.095 |
 
-### Evolução da Receita
+### Evolução do GMV
 
-A receita mensal apresentou **crescimento sustentado de Set/2016 a Ago/2018**, com:
+O GMV mensal apresentou forte crescimento até o início de 2018 e depois estabilização, com:
 - Picos sazonais em meses como **Novembro (Black Friday)** e **Janeiro**
-- Estabilização em torno de **R$ 1 milhão/mês** a partir do 2º semestre de 2017
+- GMV próximo de **R$ 0,85–1,0 milhão/mês** entre fevereiro e agosto de 2018
 - Ticket médio relativamente estável entre R$ 120-150
 
 ---
@@ -47,36 +47,34 @@ A receita mensal apresentou **crescimento sustentado de Set/2016 a Ago/2018**, c
 
 Os **3 estados do Sudeste** concentram a maior parte da atividade:
 
-| Estado | % da Receita (aprox.) | Característica |
+| Estado | % do GMV | Característica |
 |--------|----------------------|----------------|
-| **SP** | ~40% | Maior mercado, menor frete, entrega mais rápida |
-| **RJ** | ~13% | Segundo maior mercado |
-| **MG** | ~12% | Terceiro maior, bom ticket médio |
+| **SP** | 38,3% | Maior mercado, menor frete e entrega mais rápida |
+| **RJ** | 13,4% | Segundo maior mercado |
+| **MG** | 11,7% | Terceiro maior mercado |
 
 **Oportunidade:** Estados do Norte e Nordeste apresentam **ticket médio competitivo** mas são subatendidos em volume e sofrem com fretes mais altos e entregas mais longas.
 
 ### Frete e Satisfação
 
-Existe uma **correlação negativa clara** entre frete médio e avaliação do cliente:
-- Estados com **frete > R$ 30** tendem a ter notas médias abaixo de 4,0
-- Estados com **frete < R$ 20** têm notas consistentemente acima de 4,0
+Existe uma **associação negativa moderada** entre frete médio por pedido e avaliação média por estado (correlação de Pearson ≈ -0,39). O resultado é descritivo e não demonstra causalidade; distância, prazo e composição regional de produtos podem explicar parte da relação.
 
 ---
 
 ## 4. O Que Mais Vende
 
-### Top Categorias por Receita
+### Top Categorias por GMV
 
-As categorias que mais geram receita são:
-1. **bed_bath_table** (cama, mesa e banho) — alto volume
-2. **health_beauty** (beleza e saúde)  
-3. **sports_leisure** (esportes e lazer)
-4. **computers_accessories** (informática)
-5. **furniture_decor** (móveis e decoração)
+As categorias com maior GMV são:
+1. **health_beauty** (beleza e saúde) — R$ 1,26 milhão
+2. **watches_gifts** (relógios e presentes) — R$ 1,21 milhão
+3. **bed_bath_table** (cama, mesa e banho) — R$ 1,04 milhão
+4. **sports_leisure** (esportes e lazer) — R$ 988 mil
+5. **computers_accessories** (informática) — R$ 912 mil
 
 ### Categorias de Alto Ticket
 
-Categorias como **computers**, **watches_gifts** e **small_appliances** geram receita relevante com menos itens vendidos, indicando **alto ticket médio**. Já categorias como **bed_bath_table** dependem de volume.
+Categorias como **computers**, **watches_gifts** e **small_appliances** geram GMV relevante com menos itens vendidos, indicando **alto ticket médio**. Já categorias como **bed_bath_table** dependem de volume.
 
 ---
 
@@ -84,42 +82,44 @@ Categorias como **computers**, **watches_gifts** e **small_appliances** geram re
 
 ### Taxa de Atraso
 
-- **7,9% dos itens** são entregues após a data estimada
-- **Mediana do atraso:** ~7 dias além do prazo
-- **Percentil 95:** atrasos chegam a 30+ dias
+- **8,1% dos pedidos entregues** chegam após a data estimada
+- **Mediana do atraso:** 5 dias além do prazo
+- **Percentil 95:** 29 dias de atraso
 
-### Impacto na Satisfação
+### Associação com a Satisfação
 
 | Status | Nota Média |
 |--------|------------|
-| No prazo | ~4,3 ⭐ |
-| Atrasado | ~2,5 ⭐ |
+| No prazo | 4,29 ⭐ |
+| Atrasado | 2,57 ⭐ |
 
-O atraso **reduz a nota em quase 2 pontos**, sendo o fator com maior impacto negativo na satisfação do cliente.
+Pedidos atrasados apresentam nota média **1,73 ponto inferior**. A diferença é forte, mas a base observacional permite afirmar associação, não causalidade isolada.
 
 ### Concentração dos Atrasos (Pareto)
 
-A análise de Pareto revela que **poucos vendedores concentram a maioria dos atrasos**. Ações direcionadas a esse grupo teriam impacto desproporcional na melhoria da taxa de atraso global.
+A análise de Pareto mostra que **423 vendedores (13,7% do total) estão associados a 80% dos pedidos atrasados**. Como a data de entrega está no nível do pedido, essa associação não prova que o vendedor causou o atraso; transportadora, rota e pedidos com múltiplos vendedores também podem influenciar o resultado.
 
 ### Estados Mais Afetados
 
-Estados do **Norte e Nordeste** apresentam as maiores taxas de atraso e os maiores tempos médios de entrega, refletindo desafios logísticos de infraestrutura e distância dos centros de distribuição (concentrados em SP).
+Diversos estados do **Norte e Nordeste** apresentam taxas de atraso e tempos médios de entrega elevados. A base não permite atribuir diretamente o resultado à infraestrutura ou à distância; essas hipóteses devem ser verificadas com dados de rota, transportadora e centros de distribuição.
 
 ---
 
 ## 6. Segmentação de Clientes (RFM)
 
-A análise RFM segmentou os ~95 mil clientes em grupos de comportamento:
+A análise RFM segmentou 93.358 clientes com pedidos entregues. A frequência usa faixas reais de compras, evitando separar arbitrariamente clientes empatados:
 
-| Segmento | Descrição | Ação Recomendada |
-|----------|-----------|------------------|
-| **Champions** | Compraram recente, frequente, e gastam muito | Programa de fidelidade VIP |
-| **Loyal Customers** | Compram com frequência e gastam bem | Cross-sell, recompensas por indicação |
-| **New Customers** | Compraram recentemente pela primeira vez | Cupom de segunda compra, onboarding |
-| **At Risk** | Costumavam comprar, mas pararam | Campanha de retenção urgente |
-| **Hibernating** | Compraram há muito tempo, baixa frequência | Campanha de reativação com desconto |
+| Segmento | Clientes | Ação Recomendada |
+|----------|---------:|------------------|
+| **Champions** | 33 | Programa VIP e entrevistas qualitativas |
+| **Loyal Customers** | 124 | Cross-sell e recompensas por indicação |
+| **Potential Loyalists** | 37.577 | Teste de incentivo à segunda/terceira compra |
+| **New Customers** | 14.605 | Onboarding e cupom de segunda compra |
+| **At Risk** | 62 | Campanha controlada de reativação |
+| **Hibernating** | 37.154 | Teste de reativação com limite de custo |
+| **Others** | 3.803 | Monitoramento e comunicação contextual |
 
-**Achado principal:** A vasta maioria (~97%) dos clientes possui apenas **1 compra**, indicando que a taxa de recompra é extremamente baixa. Isso é típico de marketplaces, mas representa uma **grande oportunidade**: mesmo um pequeno aumento na taxa de recompra geraria receita incremental significativa.
+**Achado principal:** 97,0% dos clientes possuem apenas **1 compra entregue**. Isso pode refletir baixa retenção, mas também limitações do período observado e compras como convidado; o impacto de campanhas deve ser medido por teste controlado e margem incremental.
 
 ---
 
@@ -130,23 +130,23 @@ A análise RFM segmentou os ~95 mil clientes em grupos de comportamento:
 1. **Programa de monitoramento de vendedores com altos atrasos**
    - Implementar alertas automáticos para vendedores com taxa de atraso > 15%
    - Plano de ação progressivo: aviso → penalização de ranking → suspensão
-   - **Impacto esperado:** Redução da taxa de atraso global em 30-50%
+   - **Métrica de sucesso:** redução da taxa de atraso por pedido, controlada por rota e transportadora
 
 2. **Investir em infraestrutura logística para Norte e Nordeste**
    - Parcerias com centros de distribuição regionais
    - Opções de fulfillment para vendedores dessas regiões
-   - **Impacto esperado:** Redução do tempo médio de entrega e aumento de satisfação
+   - **Métrica de sucesso:** prazo, atraso e avaliação comparados a regiões-controle
 
 3. **Programa de incentivo à segunda compra**
    - Cupom de desconto para a segunda compra (enviado 7-14 dias após a primeira entrega)
    - Personalizado por categoria comprada
-   - **Impacto esperado:** Aumento da taxa de recompra de 3% para 5-8%
+   - **Métrica de sucesso:** recompra incremental, margem e custo por cliente reativado
 
 ### 🟡 Prioridade Média
 
 4. **Estratégia de frete subsidiado para estados com alto potencial**
    - Frete grátis ou reduzido para clientes do Nordeste em compras acima de R$ 100
-   - **Impacto esperado:** Aumento de conversão de 10-20% nesses estados
+   - **Métrica de sucesso:** conversão e margem incremental em teste A/B regional
 
 5. **Curadoria de categorias com baixa satisfação**
    - Investigar categorias com nota < 3,5 para problemas de qualidade ou descrição enganosa
@@ -160,11 +160,21 @@ A análise RFM segmentou os ~95 mil clientes em grupos de comportamento:
 
 ---
 
-## 8. Próximos Passos Analíticos
+## 8. Notas Metodológicas
+
+- GMV, volume e preço são calculados no nível do item; ticket, avaliação, prazo e atraso são calculados no nível do pedido. O GMV não representa receita contábil reconhecida.
+- Em análises por categoria, cada pedido-categoria contribui uma vez para avaliação e atraso.
+- Em análises por vendedor, a unidade logística é pedido-vendedor; isso representa associação e não atribuição causal do atraso.
+- Pedidos sem entrega observada são excluídos dos indicadores logísticos, mas permanecem nos indicadores gerais de vendas.
+- Os resultados descrevem a base Olist de 2016–2018 e não devem ser generalizados automaticamente para o mercado atual.
+
+---
+
+## 9. Próximos Passos Analíticos
 
 - **Análise de coorte:** Acompanhar retenção de clientes por coorte mensal
 - **Análise de NLP:** Extrair temas de insatisfação a partir das reviews textuais
-- **Previsão de demanda:** Modelo de forecast de receita por categoria/estado
+- **Previsão de demanda:** Modelo de forecast de GMV por categoria/estado
 - **Análise de churn de vendedores:** Identificar fatores que levam à saída de vendedores do marketplace
 - **Testes A/B:** Experimentar estratégias de frete e comunicação por segmento RFM
 

@@ -10,7 +10,7 @@ st.markdown("""
 **Bem-vindo ao CommercePulse Dashboard!**
 
 Este dashboard consolida as análises exploratórias do e-commerce brasileiro (Olist),
-apresentando métricas de desempenho, análises geográficas, de categorias, logística,
+apresentando métricas de GMV e desempenho, análises geográficas, de categorias, logística,
 vendedores e segmentação de clientes.
 
 ---
@@ -21,8 +21,8 @@ Use o menu lateral para navegar entre as páginas:
 
 | Página | Descrição |
 |--------|-----------|
-| **Visão Geral** | KPIs principais, receita mensal, visão macro do negócio |
-| **Geográfica** | Análise por estado, concentração de receita, frete |
+| **Visão Geral** | KPIs principais, GMV mensal, visão macro do negócio |
+| **Geográfica** | Análise por estado, concentração de GMV, frete |
 | **Categorias** | Top categorias, ticket médio, satisfação por segmento |
 | **Logística** | Taxa de atraso, impacto na nota, tempo de entrega |
 | **Vendedores** | Ranking de vendedores, concentração de atrasos |

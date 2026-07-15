@@ -4,23 +4,23 @@ CommercePulse Dashboard — Segmentação de Clientes (RFM).
 Análise de Recency, Frequency e Monetary dos clientes do e-commerce.
 """
 
-import sys
-from pathlib import Path
-
 import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import streamlit as st
-import pandas as pd
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, load_rfm, set_page_style, plot_chart
+from dashboard.utils import load_rfm, format_currency, format_integer, set_page_style, plot_chart
 
-st.set_page_config(page_title="Clientes RFM — CommercePulse", page_icon=":material/group:", layout="wide")
+st.set_page_config(
+    page_title="Clientes RFM — CommercePulse",
+    page_icon=":material/group:",
+    layout="wide",
+)
 set_page_style()
 
 st.title("Segmentação de Clientes (RFM)")
-st.markdown("Análise de comportamento dos clientes com base em **Recência**, **Frequência** e **Valor Monetário**.")
+st.markdown(
+    "Análise de comportamento dos clientes com base em **Recência**, "
+    "**Frequência** e **Valor Monetário**."
+)
 
 rfm = load_rfm()
 
@@ -46,15 +46,15 @@ SEGMENT_COLORS = {
 st.markdown("### Visão Geral da Base de Clientes")
 
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Total de Clientes", f"{len(rfm):,}")
-col2.metric("Ticket Médio (Monetary)", f"R$ {rfm['monetary'].mean():,.2f}")
+col1.metric("Total de Clientes", format_integer(len(rfm)))
+col2.metric("Valor Monetário Médio", format_currency(rfm["monetary"].mean()))
 col3.metric("Frequência Média", f"{rfm['frequency'].mean():.2f}")
 col4.metric("Recência Média", f"{rfm['recency'].mean():.0f} dias")
 
 col5, col6, col7, col8 = st.columns(4)
 col5.metric("% Compra Única", f"{(rfm['frequency'] == 1).mean() * 100:.1f}%")
-col6.metric("Champions", f"{(rfm['segment'] == 'Champions').sum():,}")
-col7.metric("At Risk", f"{(rfm['segment'] == 'At Risk').sum():,}")
+col6.metric("Champions", format_integer((rfm["segment"] == "Champions").sum()))
+col7.metric("At Risk", format_integer((rfm["segment"] == "At Risk").sum()))
 col8.metric("Score RFM Médio", f"{rfm['RFM_score'].mean():.1f}")
 
 st.markdown("---")
@@ -139,7 +139,9 @@ with col_left2:
         template="plotly_dark",
         height=400,
         labels={"monetary_media": "Valor Monetário Médio (R$)", "segment": ""},
-        text=seg_metrics.sort_values("monetary_media")["monetary_media"].apply(lambda x: f"R$ {x:,.0f}"),
+        text=seg_metrics.sort_values("monetary_media")["monetary_media"].apply(
+            format_currency
+        ),
     )
     fig.update_traces(textposition="outside")
     fig.update_layout(showlegend=False)
@@ -230,8 +232,8 @@ plot_chart(fig)
 pct_single = (rfm["frequency"] == 1).mean() * 100
 st.info(
     f"**{pct_single:.1f}%** dos clientes realizaram apenas **1 compra**. "
-    "Isso revela uma grande oportunidade de retenção — "
-    "programas de incentivo à segunda compra podem gerar receita incremental significativa."
+    "Isso sustenta a hipótese de oportunidade de retenção. "
+    "O ganho incremental deve ser validado com teste controlado."
 )
 
 st.markdown("---")
@@ -240,25 +242,37 @@ st.markdown("---")
 st.markdown("### Resumo por Segmento")
 
 display_metrics = seg_metrics.copy()
-display_metrics["monetary_media"] = display_metrics["monetary_media"].apply(lambda x: f"R$ {x:,.2f}")
+display_metrics["monetary_media"] = display_metrics["monetary_media"].apply(format_currency)
 display_metrics["recency_media"] = display_metrics["recency_media"].apply(lambda x: f"{x:.0f} dias")
 display_metrics["frequency_media"] = display_metrics["frequency_media"].apply(lambda x: f"{x:.2f}")
 display_metrics["rfm_score_medio"] = display_metrics["rfm_score_medio"].apply(lambda x: f"{x:.1f}")
-display_metrics["clientes"] = display_metrics["clientes"].apply(lambda x: f"{x:,}")
+display_metrics["clientes"] = display_metrics["clientes"].apply(format_integer)
 display_metrics.columns = ["Segmento", "Clientes", "Recência Média", "Frequência Média",
                            "Valor Monetário Médio", "Score RFM Médio"]
-st.dataframe(display_metrics, use_container_width=True, hide_index=True)
+st.dataframe(display_metrics, width="stretch", hide_index=True)
 
 # --- Ações Recomendadas ---
 st.markdown("### Ações Recomendadas por Segmento")
 
 recommendations = {
-    "Champions": "Programa de fidelidade VIP, acesso antecipado a promoções, programa de indicação com recompensas.",
-    "Loyal Customers": "Cross-sell personalizado, cupons de aniversário, recompensas por indicação de novos clientes.",
-    "Potential Loyalists": "Ofertas personalizadas por categoria, programas de pontos, comunicação frequente.",
-    "New Customers": "Cupom de segunda compra (7-14 dias após entrega), e-mail de boas-vindas e onboarding.",
-    "At Risk": "Campanha de retenção urgente: descontos agressivos, pesquisa de satisfação, re-engajamento.",
-    "Hibernating": "Campanha de reativação com desconto generoso, lembrete por e-mail, oferta de frete grátis.",
+    "Champions": (
+        "Programa de fidelidade VIP, acesso antecipado a promoções e indicação."
+    ),
+    "Loyal Customers": (
+        "Cross-sell personalizado, cupons de aniversário e recompensas por indicação."
+    ),
+    "Potential Loyalists": (
+        "Ofertas personalizadas, programa de pontos e comunicação contextual."
+    ),
+    "New Customers": (
+        "Teste de cupom para segunda compra após a entrega e onboarding."
+    ),
+    "At Risk": (
+        "Teste controlado de retenção e pesquisa de satisfação."
+    ),
+    "Hibernating": (
+        "Teste de reativação com limite de custo e oferta de frete."
+    ),
     "Others": "Monitoramento contínuo e comunicação por categoria de interesse.",
 }
 

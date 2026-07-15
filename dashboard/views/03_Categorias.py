@@ -1,21 +1,20 @@
 """
 CommercePulse Dashboard — Análise de Categorias.
 
-Receita, volume e satisfação por categoria de produto.
+GMV, volume e satisfação por categoria de produto.
 """
-
-import sys
-from pathlib import Path
 
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from utils import load_data, compute_category_metrics, set_page_style, plot_chart
+from dashboard.utils import load_data, compute_category_metrics, set_page_style, plot_chart
 
-st.set_page_config(page_title="Categorias — CommercePulse", page_icon=":material/sell:", layout="wide")
+st.set_page_config(
+    page_title="Categorias — CommercePulse",
+    page_icon=":material/sell:",
+    layout="wide",
+)
 set_page_style()
 
 st.title("Análise por Categoria")
@@ -29,7 +28,9 @@ years = sorted(df["purchase_year"].unique())
 selected_years = st.sidebar.multiselect("Ano", years, default=years, key="cat_year")
 
 states = sorted(df["customer_state"].dropna().unique())
-selected_states = st.sidebar.multiselect("Estado do Cliente", states, default=states, key="cat_state")
+selected_states = st.sidebar.multiselect(
+    "Estado do Cliente", states, default=states, key="cat_state"
+)
 
 top_n = st.sidebar.slider("Top N categorias", min_value=5, max_value=30, value=15)
 
@@ -42,8 +43,8 @@ if df_filtered.empty:
 
 cat_metrics = compute_category_metrics(df_filtered)
 
-# --- Top categorias por receita ---
-st.markdown(f"### Top {top_n} Categorias por Receita")
+# --- Top categorias por GMV ---
+st.markdown(f"### Top {top_n} Categorias por GMV")
 
 top_revenue = cat_metrics.sort_values("total_revenue", ascending=False).head(top_n)
 
@@ -61,14 +62,14 @@ fig.add_trace(go.Bar(
 ))
 fig.update_layout(
     template="plotly_dark", height=max(400, top_n * 28),
-    xaxis_title="Receita (R$)", yaxis_title="",
+    xaxis_title="GMV (R$)", yaxis_title="",
     margin=dict(l=180),
 )
 plot_chart(fig)
 
 st.markdown("---")
 
-# --- Volume vs Receita ---
+# --- Volume vs GMV ---
 col_left, col_right = st.columns(2)
 
 with col_left:
@@ -114,11 +115,13 @@ with col_right:
 st.markdown("---")
 
 # --- Satisfação por categoria ---
-st.markdown("### Categorias com Maiores Taxas de Atraso")
+st.markdown("### Satisfação por Categoria")
 
 tab1, tab2 = st.tabs(["Melhores", "Piores"])
 
-min_items = st.sidebar.number_input("Volume mínimo de itens", min_value=10, value=50, key="min_items_cat")
+min_items = st.sidebar.number_input(
+    "Volume mínimo de itens", min_value=10, value=50, key="min_items_cat"
+)
 cat_filtered = cat_metrics[cat_metrics["total_items"] >= min_items]
 
 with tab1:
@@ -163,8 +166,8 @@ with tab2:
 
 st.markdown("---")
 
-# --- Scatter: Receita vs Nota ---
-st.markdown("### Receita vs. Nota Média por Categoria")
+# --- Scatter: GMV vs Nota ---
+st.markdown("### GMV vs. Nota Média por Categoria")
 
 fig = px.scatter(
     cat_filtered,
@@ -175,7 +178,7 @@ fig = px.scatter(
     color_continuous_scale="RdYlGn_r",
     hover_name="product_category_name_english",
     labels={
-        "total_revenue": "Receita Total (R$)",
+        "total_revenue": "GMV Total (R$)",
         "avg_review": "Nota Média",
         "total_items": "Itens Vendidos",
         "delay_rate": "Taxa de Atraso",
