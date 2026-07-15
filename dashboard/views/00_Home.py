@@ -26,6 +26,7 @@ Use o menu lateral para navegar entre as páginas:
 | **Categorias** | Top categorias, ticket médio, satisfação por segmento |
 | **Logística** | Taxa de atraso, impacto na nota, tempo de entrega |
 | **Vendedores** | Ranking de vendedores, concentração de atrasos |
+| **Clientes (RFM)** | Segmentação de clientes por Recência, Frequência e Valor |
 
 ---
 

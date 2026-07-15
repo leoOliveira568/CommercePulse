@@ -37,6 +37,11 @@ Execute o script de criação do dataset a partir da raiz do projeto:
 python src/make_dataset.py
 ```
 
+Para gerar a tabela de segmentação RFM (necessária para a página de Clientes no dashboard):
+```bash
+python src/make_rfm_dataset.py
+```
+
 ## Como Rodar o Dashboard
 Após instalar as dependências e gerar a base processada:
 ```bash
@@ -50,6 +55,7 @@ O dashboard será aberto automaticamente no navegador em `http://localhost:8501`
 - 🏷️ **Categorias** — Top categorias, ticket médio, satisfação
 - 🚚 **Logística** — Taxa de atraso, impacto na nota, tempo de entrega
 - 🏪 **Vendedores** — Ranking de vendedores, análise de Pareto de atrasos
+- 👥 **Clientes (RFM)** — Segmentação de clientes por Recência, Frequência e Valor
 
 ## Como Exportar Gráficos
 Para gerar imagens PNG dos gráficos para relatórios:

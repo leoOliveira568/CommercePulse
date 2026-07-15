@@ -24,6 +24,7 @@ pages = {
         st.Page("views/03_Categorias.py", title="Categorias", icon=":material/sell:"),
         st.Page("views/04_Logistica.py", title="Logística", icon=":material/local_shipping:"),
         st.Page("views/05_Vendedores.py", title="Vendedores", icon=":material/storefront:"),
+        st.Page("views/06_Clientes_RFM.py", title="Clientes (RFM)", icon=":material/group:"),
     ]
 }
 

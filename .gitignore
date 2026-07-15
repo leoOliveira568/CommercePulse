@@ -6,3 +6,5 @@ __pycache__/
 
 data/raw/
 .DS_Store
+notebooks/notebooks/
+.gemini/
