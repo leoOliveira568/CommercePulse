@@ -253,13 +253,13 @@ st.dataframe(display_metrics, use_container_width=True, hide_index=True)
 st.markdown("### Ações Recomendadas por Segmento")
 
 recommendations = {
-    "Champions": "🏆 Programa de fidelidade VIP, acesso antecipado a promoções, programa de indicação com recompensas.",
-    "Loyal Customers": "💎 Cross-sell personalizado, cupons de aniversário, recompensas por indicação de novos clientes.",
-    "Potential Loyalists": "🌟 Ofertas personalizadas por categoria, programas de pontos, comunicação frequente.",
-    "New Customers": "🆕 Cupom de segunda compra (7-14 dias após entrega), e-mail de boas-vindas e onboarding.",
-    "At Risk": "⚠️ Campanha de retenção urgente: descontos agressivos, pesquisa de satisfação, re-engajamento.",
-    "Hibernating": "💤 Campanha de reativação com desconto generoso, lembrete por e-mail, oferta de frete grátis.",
-    "Others": "📋 Monitoramento contínuo e comunicação por categoria de interesse.",
+    "Champions": "Programa de fidelidade VIP, acesso antecipado a promoções, programa de indicação com recompensas.",
+    "Loyal Customers": "Cross-sell personalizado, cupons de aniversário, recompensas por indicação de novos clientes.",
+    "Potential Loyalists": "Ofertas personalizadas por categoria, programas de pontos, comunicação frequente.",
+    "New Customers": "Cupom de segunda compra (7-14 dias após entrega), e-mail de boas-vindas e onboarding.",
+    "At Risk": "Campanha de retenção urgente: descontos agressivos, pesquisa de satisfação, re-engajamento.",
+    "Hibernating": "Campanha de reativação com desconto generoso, lembrete por e-mail, oferta de frete grátis.",
+    "Others": "Monitoramento contínuo e comunicação por categoria de interesse.",
 }
 
 for seg, rec in recommendations.items():
